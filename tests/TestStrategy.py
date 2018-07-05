@@ -9,10 +9,11 @@ class TestStrategy(unittest.TestCase):
         stat = BuyDipHold(down_percent=0.1)
         port = Portfolio(120)
         stock_prices = {"A":pd.DataFrame({"close":[10, 12],"open":[8, 8]}),
-                            "B":pd.DataFrame({"close": [10, 12],"open": [11, 11]})}
-        self.assertEqual(stat.is_buy(stock_prices, "A", port), 10)
-        self.assertEqual(stat.is_buy(stock_prices, "B", port), 0)
-        self.assertEqual(stat.is_sell(stock_prices, "A", port), 0)
+                        "B":pd.DataFrame({"close": [10, 12],"open": [11, 11]})}
+        is_buy = stat.is_buy(stock_prices, ["A","B"], port)
+        self.assertEqual(is_buy["A"][0], 10)
+        self.assertEqual("B" not in is_buy, True)
+        self.assertEqual(stat.is_sell(stock_prices, ["A"], port), {})
 
 
 if __name__ == '__main__':

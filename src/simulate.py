@@ -2,6 +2,7 @@ from iexfinance import get_historical_data
 import pandas as pd
 from datetime import timedelta
 
+
 def get_history(start_time, end_time, stocks):
     history = {}
     for s in stocks:
@@ -18,13 +19,10 @@ def simulate(start_time, end_time, strategy, portfolio, stocks=(), history=None)
     today = start_time
     while today <= end_time:
         price_to_day = {s:history[s][history[s].index <= today] for s in stocks}
-        for s in stocks:
-            share, price = strategy.is_buy(price_to_day, s, portfolio)
-            if share:
-                portfolio.update(s, price, share, buy=True)
-            share, price = strategy.is_sell(price_to_day, s, portfolio)
-            if share:
-                portfolio.update(s, price, share, buy=False)
+        actions = strategy.action(price_to_day, stocks, portfolio)
+        for s in actions.keys():
+            share, price = actions[s]
+            portfolio.update(s, price, share)
         today += timedelta(days=1)
     last_price = {s:history[s]["close"].iloc[-1] for s in stocks}
     final_val = portfolio.total_asset(last_price)

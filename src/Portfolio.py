@@ -27,9 +27,9 @@ class Portfolio:
             total += stock_price[i['name']] * i['share']
         return total + self.balance
 
-    def update(self, stock, price, share, buy=True, FIFO=True):
+    def update(self, stock, price, share,  FIFO=True):
         stock = stock.upper()
-        if buy:
+        if share > 0:
             self.balance -= price*share
             bought =  Holding(stock, price, share)
             if FIFO:
@@ -37,6 +37,7 @@ class Portfolio:
             else:
                 self.positions.insert(0, bought)
         else: # sell
+            share = -share
             seq = range(len(self.positions)) if FIFO else range(len(self.positions) - 1, -1, -1)
             for i in seq:
                 if self.positions[i]['name'] == stock:
