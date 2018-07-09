@@ -28,7 +28,7 @@ class BuyDipHold(BaseStrategy):
     :param down_percent: trigger limit to buy
     """
     def __init__(self, down_percent=0.01):
-        super().__init__(name="buy and hold")
+        super().__init__(name="buy dip and hold")
         self.down_percent = down_percent
 
     def is_buy(self, history, stocks, portfolio):
@@ -42,6 +42,31 @@ class BuyDipHold(BaseStrategy):
                 share = int(portfolio.balance / h["close"].iloc[-1])
                 buy_stock[stock] = (share, h["close"].iloc[-1])
                 break  # only buy one stock
+        return buy_stock
+
+    def action(self, history_to_date, stocks, portfolio):
+        return self.is_buy(history_to_date, stocks, portfolio)
+
+
+class BuyAllHold(BaseStrategy):
+    """
+    Buy the given stocks with full balance, for multiple stocks, evenly allocate the investment
+    """
+    def __init__(self):
+        super().__init__(name="buy and hold")
+
+    def is_buy(self, history, stocks, portfolio, buy_close=True):
+        buy_stock = {}
+        per_stock_allowance = portfolio.balance / float(len(stocks))
+        for s in stocks:
+            if history[s].empty:  # no history so far
+                continue
+            if buy_close:
+                buy_stock[s] = (int(per_stock_allowance / history[s]["close"].iloc[-1]),
+                                history[s]["close"].iloc[-1])
+            else:
+                buy_stock[s] = (int(per_stock_allowance / history[s]["open"].iloc[-1]),
+                                per_stock_allowance)
         return buy_stock
 
     def action(self, history_to_date, stocks, portfolio):

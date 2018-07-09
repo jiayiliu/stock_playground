@@ -1,17 +1,33 @@
-from iexfinance import get_historical_data
-import pandas as pd
+"""
+Investment strategy simulation
+===============================
+
+Author: Jiayi (Jason) Liu
+Date: July 8, 2018
+
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 from datetime import timedelta
 
-
-def get_history(start_time, end_time, stocks):
-    history = {}
-    for s in stocks:
-        history[s] = get_historical_data(s.upper(), start=start_time, end=end_time, output_format='pandas')
-        history[s].index = pd.to_datetime(history[s].index)
-    return history
+from .utils import get_history
 
 
 def simulate(start_time, end_time, strategy, portfolio, stocks=(), history=None):
+    """
+    Simulate stock trading
+
+    :param start_time: starting date of the simulation
+    :param end_time: ending date of the simulation
+    :param strategy: :class:Strategy to be used
+    :param portfolio: :class:Portfolio
+    :param stocks: monitoring stocks
+    :param history: if provided, use the history directly, otherwise, will download the history automatically.
+    :return: final value if all stocks are sold at the last day
+    """
     if history:
         stocks = history.keys()
     else:
@@ -22,8 +38,8 @@ def simulate(start_time, end_time, strategy, portfolio, stocks=(), history=None)
         actions = strategy.action(price_to_day, stocks, portfolio)
         for s in actions.keys():
             share, price = actions[s]
-            portfolio.update(s, price, share)
+            portfolio.update(s, price, share, today)
         today += timedelta(days=1)
     last_price = {s:history[s]["close"].iloc[-1] for s in stocks}
     final_val = portfolio.total_asset(last_price)
-    return final_val
+    return final_val, portfolio
